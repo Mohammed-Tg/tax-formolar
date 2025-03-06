@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steuerformular - Ausgaben</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section h2 {
+            color: #555;
+        }
+        .form-section label {
+            display: block;
+            margin-top: 10px;
+        }
+        .form-section input[type="radio"] {
+            width: auto;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Steuerformular - Ausgaben</h1>
+
+    <form method="POST" action="{{ url_for('submit_form') }}">
+        <div class="form-section">
+            <h2>Ausgaben</h2>
+            <label for="medical_costs">Geschätzte Höhe der selbst getragenen Kosten für Ärzte/Medikamente (Krankheitskosten) in €:</label>
+            <input type="number" id="medical_costs" name="medical_costs" required><br><br>
+
+            <label for="moved">Sind Sie umgezogen? (ja/nein):</label><br>
+            <input type="radio" id="moved_yes" name="moved" value="yes"> Ja<br>
+            <input type="radio" id="moved_no" name="moved" value="no"> Nein<br><br>
+
+            <label for="union_fees">Beiträge zu Gewerkschaften in €:</label>
+            <input type="number" id="union_fees" name="union_fees"><br><br>
+
+            <label for="computer_purchase">Kauf eines Computers/Laptops/Bildschirms in €:</label>
+            <input type="number" id="computer_purchase" name="computer_purchase"><br><br>
+
+            <label for="office_furniture">Kauf von Büromöbeln (Tisch, Stuhl, Schreibtischlampe) in €:</label>
+            <input type="number" id="office_furniture" name="office_furniture"><br><br>
+
+            <label for="professional_books">Kauf / Abo Fachbücher in €:</label>
+            <input type="number" id="professional_books" name="professional_books"><br><br>
+
+            <label for="rent">Wohnen Sie zur Miete? (ja/nein):</label><br>
+            <input type="radio" id="rent_yes" name="rent" value="yes"> Ja<br>
+            <input type="radio" id="rent_no" name="rent" value="no"> Nein<br><br>
+
+            <label for="home_office">Waren Sie im Homeoffice? (ja/nein):</label><br>
+            <input type="radio" id="home_office_yes" name="home_office" value="yes"> Ja<br>
+            <input type="radio" id="home_office_no" name="home_office" value="no"> Nein<br><br>
+
+            <label for="remarks">Bemerkungen:</label>
+            <textarea id="remarks" name="remarks" rows="4"></textarea>
+        </div>
+
+        <button type="submit">Formular abschließen</button>
+    </form>
+
+    <a href="{{ url_for('einnahmen') }}">Zurück zur vorherigen Seite</a>
+
+</body>
+</html>

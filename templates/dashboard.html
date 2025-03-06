@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Willkommen in Ihrem Dashboard, {{ current_user.first_name }} {{ current_user.last_name }}!</h1>
+
+    <!-- Button zum Erstellen eines Formulars -->
+    <a href="{{ url_for('create_form') }}">
+        <button type="button">Erstelle einen Formular</button>
+    </a>
+
+    <!-- Button zum Anzeigen der erstellten Formulare -->
+    <a href="{{ url_for('view_forms') }}">
+        <button type="button">Meine Anträge</button>
+    </a>
+
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>

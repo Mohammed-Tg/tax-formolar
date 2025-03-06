@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Anträge</title>
+</head>
+<body>
+    <h1>Meine Anträge</h1>
+
+    {% if forms %}
+        <ul>
+            {% for form in forms %}
+                <li>
+                    <strong>{{ form.name }} {{ form.surname }}</strong><br>
+                    Steuer-ID: {{ form.tax_id }}<br>
+                    Steuerklasse: {{ form.tax_class }}<br>
+                    Familienstand: {{ form.family_status }}<br>
+                    Kinder: {{ form.has_children }}<br>
+                    {% if form.has_children == 'yes' %}
+                        Anzahl der Kinder: {{ form.num_children }}<br>
+                    {% endif %}
+                    <a href="{{ url_for('edit_form', form_id=form.id) }}">Bearbeiten</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Es wurden noch keine Formulare erstellt.</p>
+    {% endif %}
+
+    <a href="{{ url_for('dashboard') }}">Zurück zum Dashboard</a>
+</body>
+</html>

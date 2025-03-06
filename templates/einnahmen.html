@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steuerformular - Einnahmen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section h2 {
+            color: #555;
+        }
+        .form-section label {
+            display: block;
+            margin-top: 10px;
+        }
+        .form-section input[type="radio"] {
+            width: auto;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Steuerformular - Einnahmen</h1>
+
+    <form method="POST" action="{{ url_for('submit_form') }}">
+        <div class="form-section">
+            <h2>Einnahmen</h2>
+            <label>Haben Sie als Arbeitnehmer gearbeitet? (ja/nein)</label><br>
+            <input type="radio" id="employee_yes" name="employee" value="yes"> Ja<br>
+            <input type="radio" id="employee_no" name="employee" value="no"> Nein<br><br>
+
+            <label>Waren Sie in einem Studium oder Ausbildungsverhältnis? (ja/nein)</label><br>
+            <input type="radio" id="student_yes" name="student" value="yes"> Ja<br>
+            <input type="radio" id="student_no" name="student" value="no"> Nein<br><br>
+
+            <label>Außer Arbeitslohn weitere Einnahmen vorhanden? (bspw. Mieteinnahmen, Zinseinnahmen, Unternehmensgewinne, Arbeitslosengeld I/II, Krankengeld, Mutterschaftsgeld, Minijob) (ja/nein)</label><br>
+            <input type="radio" id="other_income_yes" name="other_income" value="yes"> Ja<br>
+            <input type="radio" id="other_income_no" name="other_income" value="no"> Nein<br><br>
+
+            <label for="remarks">Bemerkungen:</label>
+            <textarea id="remarks" name="remarks" rows="4"></textarea>
+        </div>
+
+     
+    </form>
+    <a href="{{ url_for('create_form') }}">Zurück zur vorherigen Seite</a>
+    <br>
+    <a href="{{ url_for('ausgaben') }}">
+        <button type="button">Weiter</button>
+    </a>
+
+</body>
+</html>

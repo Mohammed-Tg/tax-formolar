@@ -1,0 +1,332 @@
+<!-- <!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steuerformular</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section h2 {
+            color: #555;
+        }
+        .form-section label {
+            display: block;
+            margin-top: 10px;
+        }
+        .form-section input[type="radio"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        .form-section .children-count {
+            display: none;
+        }
+        .form-section .child-details {
+            display: none;
+            margin-left: 20px;
+            border-left: 2px solid #ccc;
+            padding-left: 10px;
+        }
+    </style>
+    <script>
+        function toggleChildrenField() {
+            var hasChildren = document.getElementById('children_yes').checked;
+            var childrenCountField = document.getElementById('children_count');
+            if (hasChildren) {
+                childrenCountField.style.display = 'block';
+            } else {
+                childrenCountField.style.display = 'none';
+            }
+        }
+
+        function toggleChildDetails() {
+            var numChildren = document.getElementById('num_children').value;
+            var childDetailsContainer = document.getElementById('child_details_container');
+            childDetailsContainer.innerHTML = ''; // Clear previous child details
+
+            if (numChildren > 0) {
+                for (var i = 1; i <= numChildren; i++) {
+                    var childDetails = `
+                        <div class="child-details">
+                            <h3>Kind ${i}</h3>
+                            <label for="child${i}_name">Vorname:</label>
+                            <input type="text" id="child${i}_name" name="child${i}_name" required>
+
+                            <label for="child${i}_birthdate">Geburtsdatum:</label>
+                            <input type="date" id="child${i}_birthdate" name="child${i}_birthdate" required>
+
+                            <label>Kindergeld erhalten?</label><br>
+                            <input type="radio" id="child${i}_allowance_yes" name="child${i}_allowance" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_allowance_no" name="child${i}_allowance" value="no"> Nein<br><br>
+
+                            <label>Geht es auf eine Privatschule?</label><br>
+                            <input type="radio" id="child${i}_private_school_yes" name="child${i}_private_school" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_private_school_no" name="child${i}_private_school" value="no"> Nein<br><br>
+
+                            <label>Lebt es in einem anderen Haushalt?</label><br>
+                            <input type="radio" id="child${i}_other_household_yes" name="child${i}_other_household" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_other_household_no" name="child${i}_other_household" value="no"> Nein<br><br>
+
+                            <label>Wurden Betreuungskosten gezahlt?</label><br>
+                            <input type="radio" id="child${i}_care_costs_yes" name="child${i}_care_costs" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_care_costs_no" name="child${i}_care_costs" value="no"> Nein<br><br>
+                        </div>
+                    `;
+                    childDetailsContainer.innerHTML += childDetails;
+                }
+                childDetailsContainer.style.display = 'block';
+            } else {
+                childDetailsContainer.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Steuerformular</h1>
+
+    <form method="POST" action="#">
+        <div class="form-section">
+            <h2>Stammdaten</h2>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="surname">Nachname:</label>
+            <input type="text" id="surname" name="surname" required>
+
+            <label for="tax_id">Steuer-ID:</label>
+            <input type="text" id="tax_id" name="tax_id" required>
+
+            <label for="tax_class">Steuerklasse:</label>
+            <input type="text" id="tax_class" name="tax_class" required>
+
+            <label for="family_status">Familienstand:</label>
+            <select id="family_status" name="family_status" required>
+                <option value="single">Ledig</option>
+                <option value="married">Verheiratet</option>
+                <option value="divorced">Geschieden</option>
+            </select>
+
+            <label>Haben Sie Kinder?</label><br>
+            <input type="radio" id="children_yes" name="children" value="yes" onclick="toggleChildrenField()"> Ja<br>
+            <input type="radio" id="children_no" name="children" value="no" onclick="toggleChildrenField()"> Nein<br><br>
+
+            <div id="children_count" class="children-count">
+                <label for="num_children">Anzahl der Kinder:</label>
+                <input type="number" id="num_children" name="num_children" min="0" onchange="toggleChildDetails()"><br><br>
+            </div>
+        </div>
+
+        <div id="child_details_container" class="child-details"></div>
+
+        <div class="form-section">
+            <h2>Weitere Informationen</h2>
+            <label for="remarks">Bemerkungen:</label>
+            <textarea id="remarks" name="remarks" rows="4"></textarea>
+        </div>
+
+        <button type="submit">Formular überprüfen und speichern</button>
+    </form>
+
+    <a href="{{ url_for('dashboard') }}">Zurück zum Dashboard</a>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steuerformular - Stammdaten</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section h2 {
+            color: #555;
+        }
+        .form-section label {
+            display: block;
+            margin-top: 10px;
+        }
+        .form-section input[type="radio"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        .form-section .children-count {
+            display: none;
+        }
+        .form-section .child-details {
+            display: none;
+            margin-left: 20px;
+            border-left: 2px solid #ccc;
+            padding-left: 10px;
+        }
+    </style>
+    <script>
+        function toggleChildrenField() {
+            var hasChildren = document.getElementById('children_yes').checked;
+            var childrenCountField = document.getElementById('children_count');
+            if (hasChildren) {
+                childrenCountField.style.display = 'block';
+            } else {
+                childrenCountField.style.display = 'none';
+            }
+        }
+
+        function toggleChildDetails() {
+            var numChildren = document.getElementById('num_children').value;
+            var childDetailsContainer = document.getElementById('child_details_container');
+            childDetailsContainer.innerHTML = ''; // Clear previous child details
+
+            if (numChildren > 0) {
+                for (var i = 1; i <= numChildren; i++) {
+                    var childDetails = `
+                        <div class="child-details">
+                            <h3>Kind ${i}</h3>
+                            <label for="child${i}_name">Vorname:</label>
+                            <input type="text" id="child${i}_name" name="child${i}_name" required>
+
+                            <label for="child${i}_birthdate">Geburtsdatum:</label>
+                            <input type="date" id="child${i}_birthdate" name="child${i}_birthdate" required>
+
+                            <label>Kindergeld erhalten?</label><br>
+                            <input type="radio" id="child${i}_allowance_yes" name="child${i}_allowance" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_allowance_no" name="child${i}_allowance" value="no"> Nein<br><br>
+
+                            <label>Geht es auf eine Privatschule?</label><br>
+                            <input type="radio" id="child${i}_private_school_yes" name="child${i}_private_school" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_private_school_no" name="child${i}_private_school" value="no"> Nein<br><br>
+
+                            <label>Lebt es in einem anderen Haushalt?</label><br>
+                            <input type="radio" id="child${i}_other_household_yes" name="child${i}_other_household" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_other_household_no" name="child${i}_other_household" value="no"> Nein<br><br>
+
+                            <label>Wurden Betreuungskosten gezahlt?</label><br>
+                            <input type="radio" id="child${i}_care_costs_yes" name="child${i}_care_costs" value="yes"> Ja<br>
+                            <input type="radio" id="child${i}_care_costs_no" name="child${i}_care_costs" value="no"> Nein<br><br>
+                        </div>
+                    `;
+                    childDetailsContainer.innerHTML += childDetails;
+                }
+                childDetailsContainer.style.display = 'block';
+            } else {
+                childDetailsContainer.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Steuerformular - Stammdaten</h1>
+
+    <form method="POST" action="{{ url_for('einnahmen') }}">
+        <div class="form-section">
+            <h2>Stammdaten</h2>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="surname">Nachname:</label>
+            <input type="text" id="surname" name="surname" required>
+
+            <label for="tax_id">Steuer-ID:</label>
+            <input type="text" id="tax_id" name="tax_id" required>
+
+            <label for="tax_class">Steuerklasse:</label>
+            <input type="text" id="tax_class" name="tax_class" required>
+
+            <label for="family_status">Familienstand:</label>
+            <select id="family_status" name="family_status" required>
+                <option value="single">Ledig</option>
+                <option value="married">Verheiratet</option>
+                <option value="divorced">Geschieden</option>
+            </select>
+
+            <label>Haben Sie Kinder?</label><br>
+            <input type="radio" id="children_yes" name="children" value="yes" onclick="toggleChildrenField()"> Ja<br>
+            <input type="radio" id="children_no" name="children" value="no" onclick="toggleChildrenField()"> Nein<br><br>
+
+            <div id="children_count" class="children-count">
+                <label for="num_children">Anzahl der Kinder:</label>
+                <input type="number" id="num_children" name="num_children" min="0" onchange="toggleChildDetails()"><br><br>
+            </div>
+           
+        </div>
+
+        <div id="child_details_container" class="child-details"></div>
+        
+        <label for="remarks">Bemerkungen:</label>
+        <textarea id="remarks" name="remarks" rows="4"></textarea>
+        
+
+        <button type="submit">Weiter</button>
+    </form>
+
+    <a href="{{ url_for('dashboard') }}">Zurück zum Dashboard</a>
+
+</body>
+</html>
