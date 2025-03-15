@@ -10,3 +10,5 @@ FPDF==1.7.2
 Flask-Mail==0.10.0
 Flask-Migrate==3.1.0
 gunicorn
+pandas
+openpyxl

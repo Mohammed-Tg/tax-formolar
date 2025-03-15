@@ -234,4 +234,3 @@ def view_forms():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Erstellt die Tabellen, wenn sie noch nicht existieren
-    app.run(debug=True)
