@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session
 from flask_migrate import Migrate
 from fpdf import FPDF
 import os
@@ -8,6 +8,10 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_mail import Mail, Message
 import random
 import string
+# Import der Excel-Export-Funktionen
+import pandas as pd
+import io
+from excel_export import create_multi_sheet_excel, send_form_data_email
 
 
 app = Flask(__name__)
@@ -134,6 +138,8 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
+            # Formular-Daten zurücksetzen, wenn ein neuer Benutzer sich anmeldet
+            session.pop('form_data', None)
             return redirect(url_for('dashboard'))
         else:
             
@@ -143,6 +149,8 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    # Formular-Daten zurücksetzen, wenn der Benutzer zum Dashboard zurückkehrt
+    session.pop('form_data', None)
     return render_template('dashboard.html', first_name=current_user.first_name, last_name=current_user.last_name)
 
 class Form(db.Model):
@@ -156,67 +164,121 @@ class Form(db.Model):
 def create_form():
     if request.method == 'POST':
         # Formular-Daten sammeln
-        name = request.form['name']
-        surname = request.form['surname']
-        tax_id = request.form['tax_id']
-        tax_class = request.form['tax_class']
-        family_status = request.form['family_status']
-        has_children = request.form.get('children', 'no')
-        num_children = request.form.get('num_children', 0)
+        form_data = {
+            'name': request.form['name'],
+            'surname': request.form['surname'],
+            'tax_id': request.form['tax_id'],
+            'tax_class': request.form['tax_class'],
+            'family_status': request.form['family_status'],
+            'has_children': request.form.get('children', 'no'),
+            'num_children': request.form.get('num_children', 0)
+        }
 
-        # PDF erstellen
+        # In der Session speichern
+        session['form_data'] = {'stammdaten': form_data}
+        
+        # PDF erstellen (optional)
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font('Arial', 'B', 16)
-        pdf.cell(200, 10, 'Formular Zusammenfassung', ln=True, align='C')
+        pdf.cell(200, 10, 'Formular Zusammenfassung - Stammdaten', ln=True, align='C')
 
         # PDF-Inhalt hinzufügen
         pdf.set_font('Arial', '', 12)
-        pdf.cell(200, 10, f"Name: {name}", ln=True)
-        pdf.cell(200, 10, f"Nachname: {surname}", ln=True)
-        pdf.cell(200, 10, f"Steuer-ID: {tax_id}", ln=True)
-        pdf.cell(200, 10, f"Steuerklasse: {tax_class}", ln=True)
-        pdf.cell(200, 10, f"Familienstand: {family_status}", ln=True)
-        pdf.cell(200, 10, f"Haben Sie Kindern?: {'Ja' if has_children == 'yes' else 'Nein'}", ln=True)
+        pdf.cell(200, 10, f"Name: {form_data['name']}", ln=True)
+        pdf.cell(200, 10, f"Nachname: {form_data['surname']}", ln=True)
+        pdf.cell(200, 10, f"Steuer-ID: {form_data['tax_id']}", ln=True)
+        pdf.cell(200, 10, f"Steuerklasse: {form_data['tax_class']}", ln=True)
+        pdf.cell(200, 10, f"Familienstand: {form_data['family_status']}", ln=True)
+        pdf.cell(200, 10, f"Haben Sie Kindern?: {'Ja' if form_data['has_children'] == 'yes' else 'Nein'}", ln=True)
 
-        if has_children == 'yes':
-            pdf.cell(200, 10, f"Anzahl der Kindern: {num_children}", ln=True)
+        if form_data['has_children'] == 'yes':
+            pdf.cell(200, 10, f"Anzahl der Kindern: {form_data['num_children']}", ln=True)
 
         # PDF speichern
-        pdf_output = f"{name}_{surname}_form.pdf"
+        pdf_output = f"{form_data['name']}_{form_data['surname']}_stammdaten.pdf"
         pdf.output(pdf_output)
 
-        # PDF dem Benutzer anbieten
-        return send_file(pdf_output, as_attachment=True)
+        flash('Stammdaten erfolgreich gespeichert!', 'success')
+        
+        # Zur nächsten Seite weiterleiten
+        return redirect(url_for('einnahmen'))
 
     return render_template('create_form.html')
-
 # Neue Route für die nächste Seite
 @app.route('/einnahmen', methods=['GET', 'POST'])
 @login_required
 def einnahmen():
     if request.method == 'POST':
-        # Verarbeiten Sie die Daten aus dem Formular
-        flash('Daten erfolgreich gespeichert!')
-        return render_template('einnahmen.html')  # Rendern der nächsten Seite
-    return render_template('einnahmen.html')  # Rendern der nächsten Seite
+        # Formular-Daten sammeln
+        einnahmen_data = request.form.to_dict()
+        
+        # Zur bestehenden Session hinzufügen
+        form_data = session.get('form_data', {})
+        form_data['einnahmen'] = einnahmen_data
+        session['form_data'] = form_data
+        
+        flash('Einnahmen erfolgreich gespeichert!', 'success')
+        print("Weiterleitung zu /ausgaben erfolgt")
+        return redirect(url_for('ausgaben'))
+    
+    return render_template('einnahmen.html')
 
 @app.route('/ausgaben', methods=['GET', 'POST'])
 @login_required
 def ausgaben():
     if request.method == 'POST':
-        # Verarbeiten Sie die Daten aus dem Formular
-        flash('Daten erfolgreich gespeichert!')
-        return redirect(url_for('dashboard'))  # Weiterleitung zum Dashboard
+        # Formular-Daten sammeln
+        ausgaben_data = request.form.to_dict()
+        
+        # Zur bestehenden Session hinzufügen
+        form_data = session.get('form_data', {})
+        form_data['ausgaben'] = ausgaben_data
+        session['form_data'] = form_data
+        
+        # Benutzerinformationen sammeln
+        # user_info = {
+        #     'first_name': current_user.first_name,
+        #     'last_name': current_user.last_name,
+        #     'email': current_user.email
+        # }
+        
+        # # Excel-Datei mit mehreren Sheets erstellen und per E-Mail senden
+        # admin_email = app.config['MAIL_USERNAME']
+        # send_form_data_email(form_data, user_info, mail, admin_email)
+        
+        flash('Formular erfolgreich abgeschickt und an den Administrator gesendet!', 'success')
+        return redirect(url_for('dashboard'))
+    
     return render_template('ausgaben.html')
 
 # Neue Route für das Abschicken des Formulars
 @app.route('/submit_form', methods=['POST'])
 @login_required
 def submit_form():
-    # Verarbeiten Sie die Daten aus dem Formular
-    flash('Formular erfolgreich abgeschickt!', 'success')
-    return redirect(url_for('dashboard'))  # Weiterleitung zum Dashboard
+    # Formular-Daten aus der Session holen
+    form_data = session.get('form_data', {})
+    
+    # Aktuelle Formulardaten hinzufügen
+    current_form_data = request.form.to_dict()
+    form_data['final'] = current_form_data
+    
+    # Benutzerinformationen sammeln
+    user_info = {
+        'first_name': current_user.first_name,
+        'last_name': current_user.last_name,
+        'email': current_user.email
+    }
+    
+    # Excel-Datei mit mehreren Sheets erstellen und per E-Mail senden
+    admin_email = app.config['MAIL_USERNAME']
+    send_form_data_email(form_data, user_info, mail, admin_email)
+    
+    # Formular-Daten zurücksetzen
+    session.pop('form_data', None)
+    
+    flash('Formular erfolgreich abgeschickt und an den Administrator gesendet!', 'success')
+    return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 @login_required

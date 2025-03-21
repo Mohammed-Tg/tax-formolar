@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formular bearbeiten</title>
+</head>
+<body>
+    <h1>Formular bearbeiten</h1>
+
+    <form method="POST">
+        <!-- Formularfelder hier einfügen, ähnlich wie in create_form.html -->
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ form.name }}" required><br><br>
+
+        <label for="surname">Nachname:</label>
+        <input type="text" id="surname" name="surname" value="{{ form.surname }}" required><br><br>
+
+        <!-- Weitere Felder hier einfügen -->
+
+        <button type="submit">Aktualisieren</button>
+    </form>
+
+    <a href="{{ url_for('view_forms') }}">Zurück zu Meine Anträge</a>
+</body>
+</html>
