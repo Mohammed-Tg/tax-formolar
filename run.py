@@ -1,5 +1,6 @@
 from app import create_app, db
 import os
+from app.models import User
 
 app = create_app()
 
@@ -10,7 +11,8 @@ if __name__ == '__main__':
         print(f"{rule.endpoint}: {rule.rule}")
     
     with app.app_context():
-        db.create_all()  # Erstellt die Tabellen, wenn sie noch nicht existieren
-        print("Datenbank erstellt!")
-    
+        print("Erstelle Datenbank...")
+        db.create_all()  # Stellt sicher, dass die Tabellen angelegt werden
+        print("Datenbank wurde erfolgreich erstellt!")
+
     app.run(debug=True)
