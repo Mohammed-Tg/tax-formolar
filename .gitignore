@@ -23,7 +23,7 @@ var/
 # Flask
 instance/
 .webassets-cache
-app.db
+
 
 # Umgebungsvariablen
 .env
