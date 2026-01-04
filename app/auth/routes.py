@@ -87,7 +87,10 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
+        if user and (user.check_password(password) or user.password == password):
+            if user.password == password:
+                user.set_password(password)
+                db.session.commit()
             login_user(user)
             return redirect(url_for('main.dashboard'))
         else:
