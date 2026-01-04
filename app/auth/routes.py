@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash
 import random
 import string
 
@@ -26,8 +25,6 @@ def register():
         last_name = request.form['last_name']
         email = request.form['email']
         password = request.form['password']
-        # hashed_password = generate_password_hash(password, methode= None)
-
         # Generiere einen Verifizierungscode
         verification_code = ''.join(random.choices(string.digits, k=6))
 
@@ -37,9 +34,10 @@ def register():
             last_name=last_name,
             username=f"{first_name.lower()}.{last_name.lower()}",  # Generieren des Benutzernamens
             email=email,
-            password=password,
+            password='',
             verification_code=verification_code  # Setzen des Verifizierungscodes
         )
+        new_user.set_password(password)
 
         # Überprüfen, ob die E-Mail-Adresse bereits existiert
         if User.query.filter_by(email=new_user.email).first() is not None:
@@ -89,7 +87,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
+        if user and user.check_password(password):
             login_user(user)
             return redirect(url_for('main.dashboard'))
         else:
