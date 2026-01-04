@@ -91,6 +91,7 @@
         </div>
 
         <button type="submit">Formular abschließen</button>
+        <button type="submit" formaction="{{ url_for('forms.export_excel') }}">Als Excel herunterladen</button>
     </form>
 
     <a href="{{ url_for('forms.einnahmen') }}">Zurück zur vorherigen Seite</a>
