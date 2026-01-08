@@ -18,6 +18,7 @@ def create_form():
         family_status = request.form['family_status']
         has_children = request.form.get('children', 'no')
         num_children = request.form.get('num_children', 0)
+        remarks = request.form.get('remarks', '')
 
         # Formular in der Datenbank speichern
         form = Form(
@@ -37,6 +38,7 @@ def create_form():
             'family_status': family_status,
             'has_children': has_children,
             'num_children': num_children,
+            'remarks': remarks,
         }
         session['form_data'] = form_data
         return redirect(url_for('forms.einnahmen'))
