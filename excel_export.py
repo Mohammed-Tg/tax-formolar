@@ -24,27 +24,40 @@ FIELD_LABELS = {
     'home_office': 'Homeoffice',
 }
 
-FIELD_ORDER = [
-    'name',
-    'surname',
-    'tax_id',
-    'tax_class',
-    'family_status',
-    'has_children',
-    'num_children',
-    'remarks',
-    'employee',
-    'student',
-    'other_income',
-    'medical_costs',
-    'moved',
-    'union_fees',
-    'computer_purchase',
-    'office_furniture',
-    'professional_books',
-    'rent',
-    'home_office',
-]
+SECTION_LABELS = {
+    'stammdaten': 'Stammdaten',
+    'einnahmen': 'Einnahmen',
+    'ausgaben': 'Ausgaben',
+}
+
+FIELD_ORDER_BY_SECTION = {
+    'stammdaten': [
+        'name',
+        'surname',
+        'tax_id',
+        'tax_class',
+        'family_status',
+        'has_children',
+        'num_children',
+    ],
+    'einnahmen': [
+        'employee',
+        'student',
+        'other_income',
+        'remarks',
+    ],
+    'ausgaben': [
+        'medical_costs',
+        'moved',
+        'union_fees',
+        'computer_purchase',
+        'office_furniture',
+        'professional_books',
+        'rent',
+        'home_office',
+        'remarks',
+    ],
+}
 
 def create_multi_sheet_excel(form_data_dict):
     """
@@ -61,16 +74,15 @@ def create_multi_sheet_excel(form_data_dict):
     
     # Excel-Writer erstellen
     with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-        flattened = {}
-        for _, data in form_data_dict.items():
-            flattened.update(data)
-        rows = []
-        for key in FIELD_ORDER:
-            if key in flattened:
+        for section_key, field_order in FIELD_ORDER_BY_SECTION.items():
+            data = form_data_dict.get(section_key, {})
+            rows = []
+            for key in field_order:
                 label = FIELD_LABELS.get(key, key)
-                rows.append({'Feld': label, 'Wert': flattened.get(key, '')})
-        df = pd.DataFrame(rows)
-        df.to_excel(writer, sheet_name='Antrag', index=False)
+                rows.append({'Feld': label, 'Wert': data.get(key, '')})
+            df = pd.DataFrame(rows)
+            sheet_name = SECTION_LABELS.get(section_key, section_key)
+            df.to_excel(writer, sheet_name=sheet_name[:31], index=False)
     
     # Zurück zum Anfang des Streams springen
     excel_file.seek(0)
