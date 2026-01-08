@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, session, current_app
 from flask_login import login_required, current_user
 from ..extensions import db, mail
@@ -6,6 +8,19 @@ from excel_export import create_multi_sheet_excel, send_form_data_email
 
 # Blueprint erstellen
 forms_bp = Blueprint('forms', __name__)
+
+def is_valid_tax_id(tax_id: str) -> bool:
+    if not re.fullmatch(r"\d{11}", tax_id or ""):
+        return False
+    digits = [int(char) for char in tax_id]
+    product = 10
+    for digit in digits[:-1]:
+        sum_value = (digit + product) % 10
+        if sum_value == 0:
+            sum_value = 10
+        product = (2 * sum_value) % 11
+    check_digit = (11 - product) % 10
+    return check_digit == digits[-1]
 
 @forms_bp.route('/create_form', methods=['GET', 'POST'])
 @login_required
@@ -19,6 +34,10 @@ def create_form():
         has_children = request.form.get('children', 'no')
         num_children = request.form.get('num_children', 0)
         remarks = request.form.get('remarks', '')
+
+        if not is_valid_tax_id(tax_id):
+            flash('Bitte eine gültige 11-stellige Steuer-ID eingeben.', 'error')
+            return render_template('forms/create_form.html', form_data=request.form)
 
         # Formular in der Datenbank speichern
         form = Form(
@@ -43,7 +62,7 @@ def create_form():
         session['form_data'] = form_data
         return redirect(url_for('forms.einnahmen'))
 
-    return render_template('forms/create_form.html')
+    return render_template('forms/create_form.html', form_data={})
 
 @forms_bp.route('/einnahmen', methods=['GET', 'POST'])
 @login_required

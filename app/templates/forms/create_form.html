@@ -59,6 +59,17 @@
             border-left: 2px solid #ccc;
             padding-left: 10px;
         }
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        .flash-messages li {
+            padding: 10px 12px;
+            border-radius: 4px;
+            background-color: #ffe6e6;
+            color: #8a1f1f;
+        }
     </style>
     <script>
         function toggleChildrenField() {
@@ -117,35 +128,45 @@
 
     <h1>Steuerformular - Stammdaten</h1>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
     <form method="POST" action="{{ url_for('forms.create_form') }}">
         <div class="form-section">
             <h2>Stammdaten</h2>
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
+            <input type="text" id="name" name="name" value="{{ form_data.get('name', '') }}" required>
 
             <label for="surname">Nachname:</label>
-            <input type="text" id="surname" name="surname" required>
+            <input type="text" id="surname" name="surname" value="{{ form_data.get('surname', '') }}" required>
 
             <label for="tax_id">Steuer-ID:</label>
-            <input type="text" id="tax_id" name="tax_id" required>
+            <input type="text" id="tax_id" name="tax_id" value="{{ form_data.get('tax_id', '') }}" pattern="^\d{11}$" inputmode="numeric" minlength="11" maxlength="11" placeholder="11-stellige Steuer-ID" title="Bitte 11 Ziffern ohne Leerzeichen eingeben." required>
 
             <label for="tax_class">Steuerklasse:</label>
-            <input type="text" id="tax_class" name="tax_class" required>
+            <input type="text" id="tax_class" name="tax_class" value="{{ form_data.get('tax_class', '') }}" required>
 
             <label for="family_status">Familienstand:</label>
             <select id="family_status" name="family_status" required>
-                <option value="single">Ledig</option>
-                <option value="married">Verheiratet</option>
-                <option value="divorced">Geschieden</option>
+                <option value="single" {% if form_data.get('family_status') == 'single' %}selected{% endif %}>Ledig</option>
+                <option value="married" {% if form_data.get('family_status') == 'married' %}selected{% endif %}>Verheiratet</option>
+                <option value="divorced" {% if form_data.get('family_status') == 'divorced' %}selected{% endif %}>Geschieden</option>
             </select>
 
             <label>Haben Sie Kinder?</label><br>
-            <input type="radio" id="children_yes" name="children" value="yes" onclick="toggleChildrenField()"> Ja<br>
-            <input type="radio" id="children_no" name="children" value="no" onclick="toggleChildrenField()"> Nein<br><br>
+            <input type="radio" id="children_yes" name="children" value="yes" onclick="toggleChildrenField()" {% if form_data.get('children') == 'yes' %}checked{% endif %}> Ja<br>
+            <input type="radio" id="children_no" name="children" value="no" onclick="toggleChildrenField()" {% if form_data.get('children', 'no') == 'no' %}checked{% endif %}> Nein<br><br>
 
             <div id="children_count" class="children-count">
                 <label for="num_children">Anzahl der Kinder:</label>
-                <input type="number" id="num_children" name="num_children" min="0" onchange="toggleChildDetails()"><br><br>
+                <input type="number" id="num_children" name="num_children" min="0" value="{{ form_data.get('num_children', '') }}" onchange="toggleChildDetails()"><br><br>
             </div>
            
         </div>
@@ -153,7 +174,7 @@
         <div id="child_details_container" class="child-details"></div>
         
         <label for="remarks">Bemerkungen:</label>
-        <textarea id="remarks" name="remarks" rows="4"></textarea>
+        <textarea id="remarks" name="remarks" rows="4">{{ form_data.get('remarks', '') }}</textarea>
         
 
         <button type="submit">Weiter</button>
