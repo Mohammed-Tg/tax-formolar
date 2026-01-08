@@ -18,6 +18,20 @@
         <button type="button">Meine Anträge</button>
     </a>
 
+    {% if forms %}
+        <h2>Meine Anträge</h2>
+        <ul>
+            {% for form in forms %}
+                <li>
+                    <strong>{{ form.title }}</strong><br>
+                    {{ form.description }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Es wurden noch keine Formulare erstellt.</p>
+    {% endif %}
+
     <a href="{{ url_for('auth.logout') }}">Logout</a>
 </body>
 </html>

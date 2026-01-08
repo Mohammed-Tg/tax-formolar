@@ -7,7 +7,15 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('main/dashboard.html', first_name=current_user.first_name, last_name=current_user.last_name)
+    from ..models.form import Form
+
+    forms = Form.query.filter_by(user_id=current_user.id).order_by(Form.id.desc()).all()
+    return render_template(
+        'main/dashboard.html',
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        forms=forms,
+    )
 
 @main_bp.route('/view_forms')
 @login_required
