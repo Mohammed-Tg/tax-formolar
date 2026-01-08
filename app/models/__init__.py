@@ -1,4 +1,4 @@
-from . import user, form
+from . import user, form, user_profile
 
 # Import models so they are registered with SQLAlchemy
-__all__ = ['user', 'form']
+__all__ = ['user', 'form', 'user_profile']

@@ -261,7 +261,7 @@ def submit_form():
     
     # Aktuelle Formulardaten hinzufügen
     current_form_data = request.form.to_dict()
-    form_data['final'] = current_form_data
+    form_data['ausgaben'] = current_form_data
     
     # Benutzerinformationen sammeln
     user_info = {
@@ -279,6 +279,31 @@ def submit_form():
     
     flash('Formular erfolgreich abgeschickt und an den Administrator gesendet!', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/export_excel', methods=['POST'])
+@login_required
+def export_excel():
+    # Formular-Daten aus der Session holen
+    form_data = session.get('form_data', {})
+
+    # Aktuelle Formulardaten hinzufügen
+    current_form_data = request.form.to_dict()
+    if current_form_data:
+        form_data['ausgaben'] = current_form_data
+        session['form_data'] = form_data
+    if not form_data:
+        flash('Keine Formulardaten für den Excel-Export gefunden.', 'error')
+        return redirect(url_for('dashboard'))
+
+    # Excel-Datei erstellen und zum Download anbieten
+    excel_file = create_multi_sheet_excel(form_data)
+    filename = f"formular_{current_user.first_name}_{current_user.last_name}.xlsx"
+    return send_file(
+        excel_file,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 @app.route('/logout')
 @login_required

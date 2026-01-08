@@ -1,99 +1,151 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steuerformular - Ausgaben</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        label {
-            font-weight: bold;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0 20px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 14px 20px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .form-section {
-            margin-bottom: 20px;
-        }
-        .form-section h2 {
-            color: #555;
-        }
-        .form-section label {
-            display: block;
-            margin-top: 10px;
-        }
-        .form-section input[type="radio"] {
-            width: auto;
-            margin-right: 10px;
-        }
-    </style>
+
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/sign-in.css" rel="stylesheet">
 </head>
-<body>
+<body class="d-flex align-items-center py-4 bg-body-tertiary">
+    <div class="container">
+        <main class="form-signin w-100 m-auto">
+            <div class="text-end mb-3">
+                <button id="theme-toggle" class="btn btn-primary">
+                    <span id="theme-icon">🌙</span> Dark Mode
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('forms.submit_form') }}">
+                <h1 class="h3 mb-3 fw-normal">Steuerformular - Ausgaben</h1>
 
-    <h1>Steuerformular - Ausgaben</h1>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    <div class="mb-3">
+                      <ul class="list-group">
+                        {% for category, message in messages %}
+                          <li class="list-group-item list-group-item-{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                {% endwith %}
 
-    <form method="POST" action="{{ url_for('forms.submit_form') }}">
-        <div class="form-section">
-            <h2>Ausgaben</h2>
-            <label for="medical_costs">Geschätzte Höhe der selbst getragenen Kosten für Ärzte/Medikamente (Krankheitskosten) in €:</label>
-            <input type="number" id="medical_costs" name="medical_costs" required><br><br>
+                <div class="mb-3">
+                    <label for="medical_costs" class="form-label">Geschätzte Höhe der selbst getragenen Kosten für Ärzte/Medikamente (Krankheitskosten) in €</label>
+                    <input type="text" class="form-control" id="medical_costs" name="medical_costs" pattern="^\d+(,\d{2})$" inputmode="decimal" placeholder="0,00" required>
+                </div>
 
-            <label for="moved">Sind Sie umgezogen? (ja/nein):</label><br>
-            <input type="radio" id="moved_yes" name="moved" value="yes"> Ja<br>
-            <input type="radio" id="moved_no" name="moved" value="no"> Nein<br><br>
+                <div class="mb-3">
+                    <label class="form-label">Sind Sie umgezogen?</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="moved_yes" name="moved" value="yes">
+                            <label class="form-check-label" for="moved_yes">Ja</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="moved_no" name="moved" value="no">
+                            <label class="form-check-label" for="moved_no">Nein</label>
+                        </div>
+                    </div>
+                </div>
 
-            <label for="union_fees">Beiträge zu Gewerkschaften in €:</label>
-            <input type="number" id="union_fees" name="union_fees"><br><br>
+                <div class="mb-3">
+                    <label for="union_fees" class="form-label">Beiträge zu Gewerkschaften in €</label>
+                    <input type="text" class="form-control" id="union_fees" name="union_fees" pattern="^\d+(,\d{2})$" inputmode="decimal" placeholder="0,00">
+                </div>
 
-            <label for="computer_purchase">Kauf eines Computers/Laptops/Bildschirms in €:</label>
-            <input type="number" id="computer_purchase" name="computer_purchase"><br><br>
+                <div class="mb-3">
+                    <label for="computer_purchase" class="form-label">Kauf eines Computers/Laptops/Bildschirms in €</label>
+                    <input type="text" class="form-control" id="computer_purchase" name="computer_purchase" pattern="^\d+(,\d{2})$" inputmode="decimal" placeholder="0,00">
+                </div>
 
-            <label for="office_furniture">Kauf von Büromöbeln (Tisch, Stuhl, Schreibtischlampe) in €:</label>
-            <input type="number" id="office_furniture" name="office_furniture"><br><br>
+                <div class="mb-3">
+                    <label for="office_furniture" class="form-label">Kauf von Büromöbeln (Tisch, Stuhl, Schreibtischlampe) in €</label>
+                    <input type="text" class="form-control" id="office_furniture" name="office_furniture" pattern="^\d+(,\d{2})$" inputmode="decimal" placeholder="0,00">
+                </div>
 
-            <label for="professional_books">Kauf / Abo Fachbücher in €:</label>
-            <input type="number" id="professional_books" name="professional_books"><br><br>
+                <div class="mb-3">
+                    <label for="professional_books" class="form-label">Kauf / Abo Fachbücher in €</label>
+                    <input type="text" class="form-control" id="professional_books" name="professional_books" pattern="^\d+(,\d{2})$" inputmode="decimal" placeholder="0,00">
+                </div>
 
-            <label for="rent">Wohnen Sie zur Miete? (ja/nein):</label><br>
-            <input type="radio" id="rent_yes" name="rent" value="yes"> Ja<br>
-            <input type="radio" id="rent_no" name="rent" value="no"> Nein<br><br>
+                <div class="mb-3">
+                    <label class="form-label">Wohnen Sie zur Miete?</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="rent_yes" name="rent" value="yes">
+                            <label class="form-check-label" for="rent_yes">Ja</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="rent_no" name="rent" value="no">
+                            <label class="form-check-label" for="rent_no">Nein</label>
+                        </div>
+                    </div>
+                </div>
 
-            <label for="home_office">Waren Sie im Homeoffice? (ja/nein):</label><br>
-            <input type="radio" id="home_office_yes" name="home_office" value="yes"> Ja<br>
-            <input type="radio" id="home_office_no" name="home_office" value="no"> Nein<br><br>
+                <div class="mb-3">
+                    <label class="form-label">Waren Sie im Homeoffice?</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="home_office_yes" name="home_office" value="yes">
+                            <label class="form-check-label" for="home_office_yes">Ja</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="home_office_no" name="home_office" value="no">
+                            <label class="form-check-label" for="home_office_no">Nein</label>
+                        </div>
+                    </div>
+                </div>
 
-            <label for="remarks">Bemerkungen:</label>
-            <textarea id="remarks" name="remarks" rows="4"></textarea>
-        </div>
+                <div class="mb-3">
+                    <label for="remarks" class="form-label">Bemerkungen</label>
+                    <textarea id="remarks" name="remarks" rows="4" class="form-control"></textarea>
+                </div>
 
-        <button type="submit">Formular abschließen</button>
-    </form>
+                <button class="btn btn-primary w-100 py-2" type="submit">Formular abschließen</button>
 
-    <a href="{{ url_for('forms.einnahmen') }}">Zurück zur vorherigen Seite</a>
+                <p class="mt-3 text-center"><a href="{{ url_for('forms.einnahmen') }}">Zurück zur vorherigen Seite</a></p>
+            </form>
+        </main>
+    </div>
 
+</body>
+</html>
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('theme-toggle');
+            if (newTheme === 'dark') {
+                themeIcon.textContent = '🌙';
+                themeToggle.innerHTML = '<span id="theme-icon">🌙</span> Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeToggle.innerHTML = '<span id="theme-icon">☀️</span> Light Mode';
+            }
+            localStorage.setItem('theme', newTheme);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('theme-toggle');
+            if (savedTheme === 'dark') {
+                themeIcon.textContent = '🌙';
+                themeToggle.innerHTML = '<span id="theme-icon">🌙</span> Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeToggle.innerHTML = '<span id="theme-icon">☀️</span> Light Mode';
+            }
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        });
+    </script>
 </body>
 </html>

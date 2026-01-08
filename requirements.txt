@@ -2,7 +2,7 @@ Flask==2.3.2
 Flask-Login==0.6.2
 Flask-WTF==1.1.1
 Flask-SQLAlchemy==3.0.4
-SQLAlchemy==2.0.23
+SQLAlchemy==2.0.36
 Werkzeug==2.3.6
 ReportLab==3.6.13
 bcrypt==4.0.1
@@ -11,5 +11,10 @@ Flask-Mail==0.10.0
 Flask-Migrate==3.1.0
 gunicorn
 python-dotenv==1.0.0
-pandas==2.0.3
+#pandas==2.0.3; python_version < "3.9"
+pandas==2.2.3; python_version >= "3.9"
 openpyxl==3.1.2
+numpy==1.26.4
+
+
+

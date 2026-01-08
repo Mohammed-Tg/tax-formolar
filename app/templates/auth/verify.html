@@ -1,19 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verifizierung</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/sign-in.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Verifizieren Sie Ihr Konto</h1>
-    <form method="POST">
-        <input type="hidden" name="email" value="{{ email }}">  <!-- E-Mail als verstecktes Feld -->
-        <label for="verification_code">Verifizierungscode:</label>
-        <input type="text" name="verification_code" required><br><br>
-        <button type="submit">Verifizieren</button>
-    </form>
+<body class="d-flex align-items-center py-4 bg-body-tertiary">
+    <div class="container">
+        <main class="form-signin w-100 m-auto">
+            <div class="text-end mb-3">
+                <button id="theme-toggle" class="btn btn-primary">
+                    <span id="theme-icon">🌙</span> Dark Mode
+                </button>
+            </div>
 
-    <p>Haben Sie den Code nicht erhalten? <a href="{{ url_for('auth.register') }}">Zurück zur Registrierung</a></p>
+            <h1 class="h3 mb-3 fw-normal">Verifizieren Sie Ihr Konto</h1>
+            <form method="POST">
+                <input type="hidden" name="email" value="{{ email }}">  <!-- E-Mail als verstecktes Feld -->
+                <label for="verification_code" class="form-label">Verifizierungscode</label>
+                <input type="text" class="form-control" name="verification_code" required>
+                <button class="btn btn-primary w-100 mt-3" type="submit">Verifizieren</button>
+            </form>
+
+            <p class="mt-3">Haben Sie den Code nicht erhalten? <a href="{{ url_for('auth.register') }}">Zurück zur Registrierung</a></p>
+        </main>
+    </div>
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('theme-toggle');
+            if (newTheme === 'dark') {
+                themeIcon.textContent = '🌙';
+                themeToggle.innerHTML = '<span id="theme-icon">🌙</span> Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeToggle.innerHTML = '<span id="theme-icon">☀️</span> Light Mode';
+            }
+            localStorage.setItem('theme', newTheme);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('theme-toggle');
+            if (savedTheme === 'dark') {
+                themeIcon.textContent = '🌙';
+                themeToggle.innerHTML = '<span id="theme-icon">🌙</span> Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeToggle.innerHTML = '<span id="theme-icon">☀️</span> Light Mode';
+            }
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        });
+    </script>
 </body>
 </html>

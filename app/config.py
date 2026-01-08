@@ -19,3 +19,10 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'kk6151850@gmail.com')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'bsts pwnz cdol kuou')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'kk6151850@gmail.com')
+
+    DEV_USER_ENABLED = os.environ.get('DEV_USER_ENABLED', 'false').lower() in ['true', 'on', '1', 'yes']
+    DEV_USERNAME = os.environ.get('DEV_USERNAME', 'dev')
+    DEV_PASSWORD = os.environ.get('DEV_PASSWORD', 'dev')
+    DEV_EMAIL = os.environ.get('DEV_EMAIL', 'dev@example.com')
+    DEV_FIRST_NAME = os.environ.get('DEV_FIRST_NAME', 'Dev')
+    DEV_LAST_NAME = os.environ.get('DEV_LAST_NAME', 'User')

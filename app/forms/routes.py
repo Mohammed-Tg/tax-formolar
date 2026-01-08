@@ -1,19 +1,32 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
-from flask_login import login_required, current_user
-from fpdf import FPDF
-import os
+import re
 
-from ..extensions import db
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, session, current_app
+from flask_login import login_required, current_user
+from ..extensions import db, mail
 from ..models.form import Form
+from ..models.user_profile import UserProfile
+from excel_export import create_multi_sheet_excel, send_form_data_email
 
 # Blueprint erstellen
 forms_bp = Blueprint('forms', __name__)
+
+def is_valid_tax_id(tax_id: str) -> bool:
+    if not re.fullmatch(r"\d{11}", tax_id or ""):
+        return False
+    digits = [int(char) for char in tax_id]
+    product = 10
+    for digit in digits[:-1]:
+        sum_value = (digit + product) % 10
+        if sum_value == 0:
+            sum_value = 10
+        product = (2 * sum_value) % 11
+    check_digit = (11 - product) % 10
+    return check_digit == digits[-1]
 
 @forms_bp.route('/create_form', methods=['GET', 'POST'])
 @login_required
 def create_form():
     if request.method == 'POST':
-        # Formular-Daten sammeln
         name = request.form['name']
         surname = request.form['surname']
         tax_id = request.form['tax_id']
@@ -21,28 +34,11 @@ def create_form():
         family_status = request.form['family_status']
         has_children = request.form.get('children', 'no')
         num_children = request.form.get('num_children', 0)
+        remarks = request.form.get('remarks', '')
 
-        # PDF erstellen
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(200, 10, 'Formular Zusammenfassung', ln=True, align='C')
-
-        # PDF-Inhalt hinzufügen
-        pdf.set_font('Arial', '', 12)
-        pdf.cell(200, 10, f"Name: {name}", ln=True)
-        pdf.cell(200, 10, f"Nachname: {surname}", ln=True)
-        pdf.cell(200, 10, f"Steuer-ID: {tax_id}", ln=True)
-        pdf.cell(200, 10, f"Steuerklasse: {tax_class}", ln=True)
-        pdf.cell(200, 10, f"Familienstand: {family_status}", ln=True)
-        pdf.cell(200, 10, f"Haben Sie Kindern?: {'Ja' if has_children == 'yes' else 'Nein'}", ln=True)
-
-        if has_children == 'yes':
-            pdf.cell(200, 10, f"Anzahl der Kindern: {num_children}", ln=True)
-
-        # PDF speichern
-        pdf_output = f"{name}_{surname}_form.pdf"
-        pdf.output(pdf_output)
+        if not is_valid_tax_id(tax_id):
+            flash('Bitte eine gültige 11-stellige Steuer-ID eingeben.', 'error')
+            return render_template('forms/create_form.html', form_data=request.form)
 
         # Formular in der Datenbank speichern
         form = Form(
@@ -51,34 +47,148 @@ def create_form():
             user_id=current_user.id
         )
         db.session.add(form)
+
+        profile_data = {
+            'name': name,
+            'surname': surname,
+            'tax_id': tax_id,
+            'tax_class': tax_class,
+            'family_status': family_status,
+            'children': has_children,
+            'num_children': num_children,
+            'remarks': remarks,
+        }
+        profile = UserProfile.query.filter_by(user_id=current_user.id).first()
+        if profile is None:
+            profile = UserProfile(user_id=current_user.id, data=profile_data)
+            db.session.add(profile)
+        else:
+            profile.data = profile_data
+
         db.session.commit()
+        session['current_form_id'] = form.id
 
-        # PDF dem Benutzer anbieten
-        return send_file(pdf_output, as_attachment=True)
+        form_data = session.get('form_data', {})
+        form_data['stammdaten'] = {
+            'name': name,
+            'surname': surname,
+            'tax_id': tax_id,
+            'tax_class': tax_class,
+            'family_status': family_status,
+            'has_children': has_children,
+            'num_children': num_children,
+            'remarks': remarks,
+        }
+        session['form_data'] = form_data
+        return redirect(url_for('forms.einnahmen'))
 
-    return render_template('forms/create_form.html')
+    session_data = session.get('form_data', {}).get('stammdaten', {})
+    if session_data:
+        form_data = dict(session_data)
+        form_data['children'] = form_data.get('children', form_data.get('has_children'))
+    else:
+        profile = UserProfile.query.filter_by(user_id=current_user.id).first()
+        form_data = dict(profile.data) if profile and profile.data else {}
+    return render_template('forms/create_form.html', form_data=form_data)
 
 @forms_bp.route('/einnahmen', methods=['GET', 'POST'])
 @login_required
 def einnahmen():
     if request.method == 'POST':
-        # Verarbeiten Sie die Daten aus dem Formular
+        form_data = session.get('form_data', {})
+        form_data['einnahmen'] = request.form.to_dict()
+        session['form_data'] = form_data
         flash('Daten erfolgreich gespeichert!')
-        return render_template('forms/einnahmen.html')  # Rendern der nächsten Seite
+        return redirect(url_for('forms.ausgaben'))
     return render_template('forms/einnahmen.html')  # Rendern der nächsten Seite
 
 @forms_bp.route('/ausgaben', methods=['GET', 'POST'])
 @login_required
 def ausgaben():
-    if request.method == 'POST':
-        # Verarbeiten Sie die Daten aus dem Formular
-        flash('Daten erfolgreich gespeichert!')
-        return redirect(url_for('main.dashboard'))  # Weiterleitung zum Dashboard
     return render_template('forms/ausgaben.html')
 
 @forms_bp.route('/submit_form', methods=['POST'])
 @login_required
 def submit_form():
-    # Verarbeiten Sie die Daten aus dem Formular
+    form_data = session.get('form_data', {})
+    form_data['ausgaben'] = request.form.to_dict()
+    session['form_data'] = form_data
+
+    form_id = session.get('current_form_id')
+    if form_id:
+        form = Form.query.filter_by(id=form_id, user_id=current_user.id).first()
+        if form:
+            form.data = form_data
+            db.session.commit()
+
+    user_info = {
+        'first_name': current_user.first_name,
+        'last_name': current_user.last_name,
+        'email': current_user.email,
+    }
+    admin_email = current_app.config['MAIL_USERNAME']
+    send_form_data_email(form_data, user_info, mail, admin_email)
+    session.pop('form_data', None)
+    session.pop('current_form_id', None)
+
     flash('Formular erfolgreich abgeschickt!', 'success')
     return redirect(url_for('main.dashboard'))  # Weiterleitung zum Dashboard
+
+@forms_bp.route('/export_excel', methods=['POST'])
+@login_required
+def export_excel():
+    form_data = session.get('form_data', {})
+    current_form_data = request.form.to_dict()
+    if current_form_data:
+        form_data['ausgaben'] = current_form_data
+        session['form_data'] = form_data
+    if not form_data:
+        flash('Keine Formulardaten für den Excel-Export gefunden.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+    excel_file = create_multi_sheet_excel(form_data)
+    filename = f"formular_{current_user.first_name}_{current_user.last_name}.xlsx"
+    return send_file(
+        excel_file,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+@forms_bp.route('/edit/<int:form_id>', methods=['GET', 'POST'])
+@login_required
+def edit_form(form_id):
+    form = Form.query.filter_by(id=form_id, user_id=current_user.id).first()
+    if form is None:
+        return "Formular nicht gefunden oder keine Berechtigung.", 404
+
+    if request.method == 'POST':
+        # Für eine einfache Implementierung speichern wir alle übermittelten Felder
+        # in das JSON-Feld `data`. Bei Bedarf kann hier Feldmapping ergänzt werden.
+        form.data = request.form.to_dict()
+        db.session.commit()
+        flash('Formular erfolgreich aktualisiert.', 'success')
+        return redirect(url_for('main.view_forms'))
+
+    # GET: Formular zum Bearbeiten anzeigen
+    return render_template('edit_form.html', form=form)
+
+
+@forms_bp.route('/delete/<int:form_id>', methods=['POST'])
+@login_required
+def delete_form(form_id):
+    form = Form.query.filter_by(id=form_id, user_id=current_user.id).first()
+    if form is None:
+        flash('Formular nicht gefunden oder keine Berechtigung.', 'error')
+        return redirect(url_for('main.view_forms'))
+
+    try:
+        db.session.delete(form)
+        db.session.commit()
+        flash('Formular erfolgreich gelöscht.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Fehler beim Löschen des Formulars.', 'error')
+
+    return redirect(url_for('main.view_forms'))
