@@ -79,7 +79,12 @@ def create_multi_sheet_excel(form_data_dict):
             rows = []
             for key in field_order:
                 label = FIELD_LABELS.get(key, key)
-                rows.append({'Feld': label, 'Wert': data.get(key, '')})
+                value = data.get(key, '')
+                if value == 'yes':
+                    value = 'Ja'
+                elif value == 'no':
+                    value = 'Nein'
+                rows.append({'Feld': label, 'Wert': value})
             df = pd.DataFrame(rows)
             sheet_name = SECTION_LABELS.get(section_key, section_key)
             df.to_excel(writer, sheet_name=sheet_name[:31], index=False)
