@@ -2,6 +2,34 @@ import pandas as pd
 import io
 from flask_mail import Message
 
+FIELD_LABELS = {
+    'name': 'Vorname',
+    'surname': 'Nachname',
+    'tax_id': 'Steuer-ID',
+    'tax_class': 'Steuerklasse',
+    'family_status': 'Familienstand',
+    'has_children': 'Kinder',
+    'num_children': 'Anzahl Kinder',
+    'employee': 'Als Arbeitnehmer gearbeitet',
+    'student': 'Studium/Ausbildung',
+    'other_income': 'Weitere Einnahmen',
+    'remarks': 'Bemerkungen',
+    'medical_costs': 'Krankheitskosten',
+    'moved': 'Umgezogen',
+    'union_fees': 'Gewerkschaftsbeiträge',
+    'computer_purchase': 'Computer/Laptop/Bildschirm',
+    'office_furniture': 'Büromöbel',
+    'professional_books': 'Fachbücher/Abo',
+    'rent': 'Zur Miete',
+    'home_office': 'Homeoffice',
+}
+
+SECTION_LABELS = {
+    'stammdaten': 'Stammdaten',
+    'einnahmen': 'Einnahmen',
+    'ausgaben': 'Ausgaben',
+}
+
 def create_multi_sheet_excel(form_data_dict):
     """
     Erstellt eine Excel-Datei mit mehreren Sheets aus den Formulardaten
@@ -19,10 +47,14 @@ def create_multi_sheet_excel(form_data_dict):
     with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
         # Für jede Seite ein eigenes Sheet erstellen
         for sheet_name, data in form_data_dict.items():
-            # Pandas DataFrame aus den Formulardaten erstellen
-            df = pd.DataFrame([data])
+            rows = []
+            for key, value in data.items():
+                label = FIELD_LABELS.get(key, key)
+                rows.append({'Feld': label, 'Wert': value})
+            df = pd.DataFrame(rows)
             # In das entsprechende Sheet schreiben
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
+            title = SECTION_LABELS.get(sheet_name, sheet_name)
+            df.to_excel(writer, sheet_name=title[:31], index=False)
     
     # Zurück zum Anfang des Streams springen
     excel_file.seek(0)
