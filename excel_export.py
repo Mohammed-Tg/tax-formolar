@@ -24,11 +24,27 @@ FIELD_LABELS = {
     'home_office': 'Homeoffice',
 }
 
-SECTION_LABELS = {
-    'stammdaten': 'Stammdaten',
-    'einnahmen': 'Einnahmen',
-    'ausgaben': 'Ausgaben',
-}
+FIELD_ORDER = [
+    'name',
+    'surname',
+    'tax_id',
+    'tax_class',
+    'family_status',
+    'has_children',
+    'num_children',
+    'remarks',
+    'employee',
+    'student',
+    'other_income',
+    'medical_costs',
+    'moved',
+    'union_fees',
+    'computer_purchase',
+    'office_furniture',
+    'professional_books',
+    'rent',
+    'home_office',
+]
 
 def create_multi_sheet_excel(form_data_dict):
     """
@@ -45,16 +61,16 @@ def create_multi_sheet_excel(form_data_dict):
     
     # Excel-Writer erstellen
     with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-        # Für jede Seite ein eigenes Sheet erstellen
-        for sheet_name, data in form_data_dict.items():
-            rows = []
-            for key, value in data.items():
+        flattened = {}
+        for _, data in form_data_dict.items():
+            flattened.update(data)
+        rows = []
+        for key in FIELD_ORDER:
+            if key in flattened:
                 label = FIELD_LABELS.get(key, key)
-                rows.append({'Feld': label, 'Wert': value})
-            df = pd.DataFrame(rows)
-            # In das entsprechende Sheet schreiben
-            title = SECTION_LABELS.get(sheet_name, sheet_name)
-            df.to_excel(writer, sheet_name=title[:31], index=False)
+                rows.append({'Feld': label, 'Wert': flattened.get(key, '')})
+        df = pd.DataFrame(rows)
+        df.to_excel(writer, sheet_name='Antrag', index=False)
     
     # Zurück zum Anfang des Streams springen
     excel_file.seek(0)
