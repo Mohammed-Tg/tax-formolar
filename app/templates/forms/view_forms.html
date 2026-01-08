@@ -12,14 +12,8 @@
         <ul>
             {% for form in forms %}
                 <li>
-                    <strong>{{ form.name }} {{ form.surname }}</strong><br>
-                    Steuer-ID: {{ form.tax_id }}<br>
-                    Steuerklasse: {{ form.tax_class }}<br>
-                    Familienstand: {{ form.family_status }}<br>
-                    Kinder: {{ form.has_children }}<br>
-                    {% if form.has_children == 'yes' %}
-                        Anzahl der Kinder: {{ form.num_children }}<br>
-                    {% endif %}
+                    <strong>{{ form.title }}</strong><br>
+                    {{ form.description }}
                 </li>
             {% endfor %}
         </ul>
