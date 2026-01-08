@@ -154,3 +154,41 @@ def export_excel():
         download_name=filename,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
+@forms_bp.route('/edit/<int:form_id>', methods=['GET', 'POST'])
+@login_required
+def edit_form(form_id):
+    form = Form.query.filter_by(id=form_id, user_id=current_user.id).first()
+    if form is None:
+        return "Formular nicht gefunden oder keine Berechtigung.", 404
+
+    if request.method == 'POST':
+        # Für eine einfache Implementierung speichern wir alle übermittelten Felder
+        # in das JSON-Feld `data`. Bei Bedarf kann hier Feldmapping ergänzt werden.
+        form.data = request.form.to_dict()
+        db.session.commit()
+        flash('Formular erfolgreich aktualisiert.', 'success')
+        return redirect(url_for('main.view_forms'))
+
+    # GET: Formular zum Bearbeiten anzeigen
+    return render_template('edit_form.html', form=form)
+
+
+@forms_bp.route('/delete/<int:form_id>', methods=['POST'])
+@login_required
+def delete_form(form_id):
+    form = Form.query.filter_by(id=form_id, user_id=current_user.id).first()
+    if form is None:
+        flash('Formular nicht gefunden oder keine Berechtigung.', 'error')
+        return redirect(url_for('main.view_forms'))
+
+    try:
+        db.session.delete(form)
+        db.session.commit()
+        flash('Formular erfolgreich gelöscht.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Fehler beim Löschen des Formulars.', 'error')
+
+    return redirect(url_for('main.view_forms'))

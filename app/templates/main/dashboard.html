@@ -1,37 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/sign-in.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Willkommen in Ihrem Dashboard, {{ current_user.first_name }} {{ current_user.last_name }}!</h1>
+<body class="d-flex align-items-center py-4 bg-body-tertiary">
+    <div class="container">
+        <main class="form-signin w-100 m-auto">
+            <div class="text-end mb-3">
+                <button id="theme-toggle" class="btn btn-primary">
+                    <span id="theme-icon">🌙</span> Dark Mode
+                </button>
+            </div>
 
-    <!-- Button zum Erstellen eines Formulars -->
-    <a href="{{ url_for('forms.create_form') }}">
-        <button type="button">Erstelle einen Formular</button>
-    </a>
+            <div class="text-center mb-4">
+                <h1 class="h3">Willkommen, {{ current_user.first_name }} {{ current_user.last_name }}!</h1>
+                <p class="text-body-secondary">Übersicht deiner Formulare</p>
+            </div>
 
-    <!-- Button zum Anzeigen der erstellten Formulare -->
-    <a href="{{ url_for('main.view_forms') }}">
-        <button type="button">Meine Anträge</button>
-    </a>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mb-3">
+                  <ul class="list-group">
+                    {% for category, message in messages %}
+                      <li class="list-group-item list-group-item-{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            {% endwith %}
 
-    {% if forms %}
-        <h2>Meine Anträge</h2>
-        <ul>
-            {% for form in forms %}
-                <li>
-                    <strong>{{ form.title }}</strong><br>
-                    {{ form.description }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Es wurden noch keine Formulare erstellt.</p>
-    {% endif %}
+            <div class="d-grid gap-2 mb-4">
+                <a class="btn btn-primary btn-lg" href="{{ url_for('forms.create_form') }}">Neues Formular erstellen</a>
+                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('main.view_forms') }}">Meine Anträge anzeigen</a>
+            </div>
 
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% if forms %}
+                <h2 class="h5 mb-3">Meine Anträge</h2>
+                <ul class="list-group mb-3">
+                    {% for form in forms %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">{{ form.title }}</div>
+                                <div class="text-muted">{{ form.description }}</div>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                {% if form.data %}
+                                  <a class="btn btn-outline-primary" href="{{ url_for('main.download_form_pdf', form_id=form.id) }}">PDF</a>
+                                {% endif %}
+                                <a class="btn btn-outline-secondary" href="{{ url_for('forms.edit_form', form_id=form.id) }}">Bearbeiten</a>
+                                <form method="POST" action="{{ url_for('forms.delete_form', form_id=form.id) }}" onsubmit="return confirm('Möchten Sie dieses Formular wirklich löschen?');">
+                                    <button type="submit" class="btn btn-outline-danger">Löschen</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-center">Es wurden noch keine Formulare erstellt.</p>
+            {% endif %}
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.logout') }}" class="text-decoration-none">Logout</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('theme-toggle');
+            if (newTheme === 'dark') {
+                themeIcon.textContent = '🌙';
+                themeToggle.innerHTML = '<span id="theme-icon">🌙</span> Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeToggle.innerHTML = '<span id="theme-icon">☀️</span> Light Mode';
+            }
+            localStorage.setItem('theme', newTheme);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            const themeIcon = document.getElementById('theme-icon');
+            const themeToggle = document.getElementById('theme-toggle');
+            if (savedTheme === 'dark') {
+                themeIcon.textContent = '🌙';
+                themeToggle.innerHTML = '<span id="theme-icon">🌙</span> Dark Mode';
+            } else {
+                themeIcon.textContent = '☀️';
+                themeToggle.innerHTML = '<span id="theme-icon">☀️</span> Light Mode';
+            }
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        });
+    </script>
 </body>
 </html>

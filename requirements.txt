@@ -11,8 +11,10 @@ Flask-Mail==0.10.0
 Flask-Migrate==3.1.0
 gunicorn
 python-dotenv==1.0.0
-pandas==2.0.3; python_version < "3.9"
+#pandas==2.0.3; python_version < "3.9"
 pandas==2.2.3; python_version >= "3.9"
 openpyxl==3.1.2
-numpy==1.26.4; python_version < "3.12"
-numpy==2.1.4; python_version >= "3.12"
+numpy==1.26.4
+
+
+
