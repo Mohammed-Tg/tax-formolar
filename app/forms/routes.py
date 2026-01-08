@@ -66,6 +66,7 @@ def create_form():
             profile.data = profile_data
 
         db.session.commit()
+        session['current_form_id'] = form.id
 
         form_data = session.get('form_data', {})
         form_data['stammdaten'] = {
@@ -113,6 +114,13 @@ def submit_form():
     form_data['ausgaben'] = request.form.to_dict()
     session['form_data'] = form_data
 
+    form_id = session.get('current_form_id')
+    if form_id:
+        form = Form.query.filter_by(id=form_id, user_id=current_user.id).first()
+        if form:
+            form.data = form_data
+            db.session.commit()
+
     user_info = {
         'first_name': current_user.first_name,
         'last_name': current_user.last_name,
@@ -121,6 +129,7 @@ def submit_form():
     admin_email = current_app.config['MAIL_USERNAME']
     send_form_data_email(form_data, user_info, mail, admin_email)
     session.pop('form_data', None)
+    session.pop('current_form_id', None)
 
     flash('Formular erfolgreich abgeschickt!', 'success')
     return redirect(url_for('main.dashboard'))  # Weiterleitung zum Dashboard
