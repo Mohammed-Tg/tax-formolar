@@ -161,8 +161,8 @@
             </select>
 
             <label>Haben Sie Kinder?</label><br>
-            <input type="radio" id="children_yes" name="children" value="yes" onclick="toggleChildrenField()" {% if form_data.get('children') == 'yes' %}checked{% endif %}> Ja<br>
-            <input type="radio" id="children_no" name="children" value="no" onclick="toggleChildrenField()" {% if form_data.get('children', 'no') == 'no' %}checked{% endif %}> Nein<br><br>
+            <input type="radio" id="children_yes" name="children" value="yes" onclick="toggleChildrenField()" {% if form_data.get('children', form_data.get('has_children')) == 'yes' %}checked{% endif %}> Ja<br>
+            <input type="radio" id="children_no" name="children" value="no" onclick="toggleChildrenField()" {% if form_data.get('children', form_data.get('has_children', 'no')) == 'no' %}checked{% endif %}> Nein<br><br>
 
             <div id="children_count" class="children-count">
                 <label for="num_children">Anzahl der Kinder:</label>

@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from ..extensions import db, mail
 from ..models.form import Form
+from ..models.user_profile import UserProfile
 from excel_export import create_multi_sheet_excel, send_form_data_email
 
 # Blueprint erstellen
@@ -46,6 +47,24 @@ def create_form():
             user_id=current_user.id
         )
         db.session.add(form)
+
+        profile_data = {
+            'name': name,
+            'surname': surname,
+            'tax_id': tax_id,
+            'tax_class': tax_class,
+            'family_status': family_status,
+            'children': has_children,
+            'num_children': num_children,
+            'remarks': remarks,
+        }
+        profile = UserProfile.query.filter_by(user_id=current_user.id).first()
+        if profile is None:
+            profile = UserProfile(user_id=current_user.id, data=profile_data)
+            db.session.add(profile)
+        else:
+            profile.data = profile_data
+
         db.session.commit()
 
         form_data = session.get('form_data', {})
@@ -62,7 +81,14 @@ def create_form():
         session['form_data'] = form_data
         return redirect(url_for('forms.einnahmen'))
 
-    return render_template('forms/create_form.html', form_data={})
+    session_data = session.get('form_data', {}).get('stammdaten', {})
+    if session_data:
+        form_data = dict(session_data)
+        form_data['children'] = form_data.get('children', form_data.get('has_children'))
+    else:
+        profile = UserProfile.query.filter_by(user_id=current_user.id).first()
+        form_data = dict(profile.data) if profile and profile.data else {}
+    return render_template('forms/create_form.html', form_data=form_data)
 
 @forms_bp.route('/einnahmen', methods=['GET', 'POST'])
 @login_required
